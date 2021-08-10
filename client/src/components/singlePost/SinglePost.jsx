@@ -1,27 +1,77 @@
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom"
 import "./singlepost.css"
+import { Link } from 'react-router-dom';
+import { useContext } from "react";
+import { Context } from "../../context/Context";
 
 export default function SinglePost() {
+    const location = useLocation();
+   const path = (location.pathname.split("/")[2]);
+const [post,setPost]= useState({})
+const PF="localhost:5000/images/"
+const{user}=useContext(Context)
+const[title,setTitle] = useState("")
+const[desc,setDesc] = useState("")
+const[updateMode, setUpdateMode]=useState(false)
+
+useEffect(()=>{
+const getPost = async ()=>{
+    const res=await axios.get("/posts/"+path);
+  setPost(res.data)
+};
+getPost()
+},[path])
+
+
+const handleDelete=async()=>{
+    try{
+await axios.delete(`/posts/${post._id}` , {data:{username:user.username}})
+window.location.replace ("/")
+    }catch(err){
+        
+    }
+};
+
+
+
     return (
         <div className="singlePost">
             <div className="singlePostWrapper">
-               <img  src="https://images.pexels.com/photos/6685428/pexels-photo-6685428.jpeg?auto=compress&cs=tinysrgb&dpr=2&w=500"
+            {post.photo && (
+               <img  src={PF+post.photo}
           
-          alt="" className="singlePostImg" /> 
+          alt="" className="singlePostImg" /> )}
+
+{
+    updateMode?<input type ="text" value={post.title} className="singlePostTiltleInput" />:(
+
+   
+
           <h1 className="singlePostTiltle">
-              Lorem, ipsum dolor sit amet consectetur 
+           {post.title}
+           {post.username ===user?.username &&(
               <div className="singlePostEdit">
-              <i className =" singlePostIcon far fa-edit"></i>
-              <i className =" singlePostIcon far fa-trash-alt"></i>
+              <i className =" singlePostIcon far fa-edit" onClick={()=> setUpdateMode(true)}></i>
+              <i className =" singlePostIcon far fa-trash-alt" onClick={handleDelete}></i>
               </div>
+           )}
           </h1>
+
+          )
+}
           <div className="singlePostInfo">
-              <span className="singlePostAuthor">Author : <b>Shikhar</b></span>
-              <span className="singlePostDate">1 hour ago</span>
+              <span className="singlePostAuthor">Author :
+              <Link to={`/?user=${post.username}`} ><b>{post.username}</b></Link>
+               </span>
+              <span className="singlePostDate">{new Date(post.createdAt).toDateString()}</span>
           </div>
-          <p>
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit. Deserunt officia enim eos. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Neque odit totam nulla. Nesciunt quam illum reprehenderit quae tempora cupiditate earum non officiis, ex reiciendis magni amet illo quidem iste rerum. Consectetur impedit reiciendis sit assumenda placeat ea ipsam ad pariatur accusamus laborum fugit sunt at, earum, illo vero eius a nisi quo amet ullam maxime perspiciatis? Laudantium ab quasi deserunt incidunt eveniet debitis tempore quidem qui tempora eligendi molestiae velit perferendis temporibus vitae consequatur at cum assumenda doloremque itaque, inventore mollitia similique molestias quibusdam esse? Est sint rerum animi omnis distinctio eius autem alias. Aliquam dignissimos harum sint, quibusdam voluptate doloribus consectetur a temporibus sequi dolores alias unde corporis minima nobis laborum suscipit ipsam, optio itaque? Quos natus enim excepturi! Dicta, beatae magni.
-          </p>
+          {updateMode ? <textarea className="singlePostDescInput"/> : (
+          <p className="singlePostDesc">
+            {post.desc}
+          </p>)}
             </div>
         </div>
-    )
+    );
 }
